@@ -81,7 +81,7 @@ def run_model(model,running_mode='train', train_set=None, valid_set=None, test_s
         epoch = 0
         prev_loss = 0
         cur_loss = np.inf
-        while epoch <= n_epochs and abs(cur_loss - prev_loss) >= stop_thr:
+        while epoch < n_epochs and abs(cur_loss - prev_loss) > stop_thr:
             model, train_loss, train_accuracy  = _train(model, data_loader, optimizer)
             train_lossarr.append(train_loss)
             train_accuracyarr.append(train_accuracy) 
@@ -118,7 +118,7 @@ def _train(model,data_loader,optimizer,device=torch.device('cpu')):
     train_accuracy: average accuracy on the entire training dataset
     """
 
-   #loss_func = nn.CrossEntropyLoss() 
+    loss_func = nn.CrossEntropyLoss() 
     train_loss = 0
     train_correct = 0 
     train_total = 0
@@ -127,7 +127,7 @@ def _train(model,data_loader,optimizer,device=torch.device('cpu')):
     for batch_idx, (data, target) in enumerate(data_loader):
         optimizer.zero_grad() 
         output = model(data.float())
-        loss = F.cross_entropy(output, target.long(), reduction = 'sum') 
+        loss = loss_func(output, target) 
         train_loss += loss.item() 
         train_total += len(target) 
         answer = np.argmax(output.detach().numpy(), axis = 1) 
@@ -155,15 +155,15 @@ def _test(model, data_loader, device=torch.device('cpu')):
     test_accuracy: percentage of correctly classified samples in the validation or testing dataset
     """
 
-    #loss_func = nn.CrossEntropyLoss()
+    loss_func = nn.CrossEntropyLoss()
     test_loss = 0
     test_correct = 0
     test_total = 0
-    model.eval() 
+    model.eval()
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(data_loader):
             output = model(data.float())
-            loss = F.cross_entropy(output, target.long(), reduction = 'sum')           
+            loss = loss_func(output, target)           
             test_loss += loss.item()  
             test_total += len(target)
             answer = np.argmax(output.detach().numpy(), axis = 1) 
