@@ -69,9 +69,34 @@ def run_model(model,running_mode='train', train_set=None, valid_set=None, test_s
        - call the test function (see below) with the test data loader and return the results
 
     """
-
-    raise NotImplementedError()
-
+    if running_mode == 'train':
+        train_lossarr = []
+        train_accuracyarr = []
+        eval_loss = []
+        eval_accuracy = []
+        optimizer = optim.SGD(model.parameters(), learning_rate) 
+        data_loader = DataLoader(train_set, batch_size, shuffle)
+        if valid_set is not None:
+            valid_data_loader = DataLoader(valid_set, batch_size, shuffle) 
+        epoch = 0
+        prev_loss = 0
+        cur_loss = np.inf
+        while epoch <= n_epochs and abs(cur_loss - prev_loss) >= stop_thr:
+            model, train_loss, train_accuracy  = _train(model, data_loader, optimizer)
+            train_lossarr.append(train_loss)
+            train_accuracyarr.append(train_accuracy) 
+            if valid_set is not None:
+                val_loss, val_accuracy = _test(model, valid_data_loader) 
+                eval_loss.append(val_loss) 
+                eval_accuracy.append(val_accuracy)
+                prev_loss = cur_loss
+                cur_loss = val_loss
+            epoch += 1
+        return model, {'train': train_lossarr, 'valid': eval_loss}, {'train': train_accuracyarr, 'valid': eval_accuracy}       
+    else:
+        data_loader = DataLoader(test_set, batch_size, shuffle)
+        loss, accuracy = _test(model, data_loader) 
+        return loss, accuracy
 
 def _train(model,data_loader,optimizer,device=torch.device('cpu')):
 
@@ -93,9 +118,27 @@ def _train(model,data_loader,optimizer,device=torch.device('cpu')):
     train_accuracy: average accuracy on the entire training dataset
     """
 
-    raise NotImplementedError()
+   #loss_func = nn.CrossEntropyLoss() 
+    train_loss = 0
+    train_correct = 0 
+    train_total = 0
+    model.train() 
 
+    for batch_idx, (data, target) in enumerate(data_loader):
+        optimizer.zero_grad() 
+        output = model(data.float())
+        loss = F.cross_entropy(output, target.long(), reduction = 'sum') 
+        train_loss += loss.item() 
+        train_total += len(target) 
+        answer = np.argmax(output.detach().numpy(), axis = 1) 
+        incorrect = np.count_nonzero(answer - target.numpy())
+        train_correct += len(answer) - incorrect
 
+        loss.backward()
+        optimizer.step()    
+ 
+    return model, train_loss / len(data_loader) , train_correct / train_total * 100
+        
 def _test(model, data_loader, device=torch.device('cpu')):
     """
     This function evaluates a trained neural network on a validation set
@@ -112,5 +155,19 @@ def _test(model, data_loader, device=torch.device('cpu')):
     test_accuracy: percentage of correctly classified samples in the validation or testing dataset
     """
 
-    raise NotImplementedError()
+    #loss_func = nn.CrossEntropyLoss()
+    test_loss = 0
+    test_correct = 0
+    test_total = 0
+    model.eval() 
+    with torch.no_grad():
+        for batch_idx, (data, target) in enumerate(data_loader):
+            output = model(data.float())
+            loss = F.cross_entropy(output, target.long(), reduction = 'sum')           
+            test_loss += loss.item()  
+            test_total += len(target)
+            answer = np.argmax(output.detach().numpy(), axis = 1) 
+            incorrect = np.count_nonzero(answer - target.numpy())
+            test_correct += len(answer) - incorrect 
+    return test_loss / len(data_loader) , test_correct / test_total * 100
 

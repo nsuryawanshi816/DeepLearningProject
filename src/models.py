@@ -25,10 +25,14 @@ class Digit_Classifier(nn.Module):
     """
     def __init__(self):
         super(Digit_Classifier, self).__init__()
+        self.hidden1 = nn.Linear(28 * 28, 128)
+        self.hidden2 = nn.Linear(128, 64) 
+        self.out = nn.Linear(64, 10) 
 
     def forward(self, inputs):
-        raise NotImplementedError()
-
+        hidden1_output = F.relu(self.hidden1(inputs))
+        hidden2_output = F.relu(self.hidden2(hidden1_output)) 
+        return self.out(hidden2_output)
 
 class Dog_Classifier_FC(nn.Module):
     """
@@ -47,12 +51,15 @@ class Dog_Classifier_FC(nn.Module):
 
     def __init__(self):
         super(Dog_Classifier_FC, self).__init__()
-
+        self.hidden1 = nn.Linear(, 128)
+        self.hidden2 = nn.Linear(128, 64) 
+        self.ou = nn.Linear(64, 10)
+        
     def forward(self, inputs):
-        raise NotImplementedError()
-
-raise NotImplementedError()
-
+        inputs.reshape
+        answer1 = self.hidden1(inputs) 
+        answer2 = self.hidden2(nn.ReLU(answer1)) 
+        return self.out(nn.ReLU(answer2))
 
 class Dog_Classifier_Conv(nn.Module):
     """
