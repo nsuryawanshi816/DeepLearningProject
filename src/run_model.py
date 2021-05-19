@@ -127,7 +127,7 @@ def _train(model,data_loader,optimizer,device=torch.device('cpu')):
     for batch_idx, (data, target) in enumerate(data_loader):
         optimizer.zero_grad() 
         output = model(data.float())
-        loss = loss_func(output, target) 
+        loss = loss_func(output, target.long()) 
         train_loss += loss.item() 
         train_total += len(target) 
         answer = np.argmax(output.detach().numpy(), axis = 1) 
@@ -163,7 +163,7 @@ def _test(model, data_loader, device=torch.device('cpu')):
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(data_loader):
             output = model(data.float())
-            loss = loss_func(output, target)           
+            loss = loss_func(output, target.long())           
             test_loss += loss.item()  
             test_total += len(target)
             answer = np.argmax(output.detach().numpy(), axis = 1) 
