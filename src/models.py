@@ -91,7 +91,7 @@ class Dog_Classifier_Conv(nn.Module):
         self.pool = nn.MaxPool2d(2) 
         self.out = nn.Linear(32 * 13 * 13, 10)
     def forward(self, inputs):
-        inputs = inputs.permute(0, 3, 1, 2)
+        inputs = inputs.permute((0, 3, 1, 2))
         answer1 = self.pool(F.relu(self.layer1(inputs))) 
         answer2 = self.pool(F.relu(self.layer2(answer1))) 
         return self.out(answer2.reshape(1, 32 * 13 * 13))
