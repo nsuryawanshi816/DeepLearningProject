@@ -56,6 +56,7 @@ class Dog_Classifier_FC(nn.Module):
         self.out = nn.Linear(64, 10)
         
     def forward(self, inputs):
+        inputs = inputs.reshape(-1, 12288)
         answer1 = self.hidden1(inputs) 
         answer2 = self.hidden2(F.relu(answer1)) 
         return self.out(F.relu(answer2))
@@ -87,13 +88,13 @@ class Dog_Classifier_Conv(nn.Module):
     def __init__(self, kernel_size, stride):
         super(Dog_Classifier_Conv, self).__init__()
         self.layer1 = nn.Conv2d(3, 16, kernel_size = kernel_size[0], stride = stride[0]) 
-        self.layer2 = nn.Conv2d(16, 32, kernel_size = kernel_size[1], stride = stride[1])
-        self.pool = nn.MaxPool2d(2) 
+        self.layer2 = nn.Conv2d(16, 32, kernel_size = kernel_size[1], stride = stride[1]) 
+        self.pool = nn.MaxPool2d(2)
         self.out = nn.Linear(32 * 13 * 13, 10)
     def forward(self, inputs):
-        inputs = inputs.permute((0, 3, 1, 2))
+        inputs = inputs.permute((0, 3, 1, 2)) 
         answer1 = self.pool(F.relu(self.layer1(inputs))) 
         answer2 = self.pool(F.relu(self.layer2(answer1))) 
-        return self.out(answer2.reshape(1, 32 * 13 * 13))
+        return self.out(torch.flatten(answer2, start_dim = 1))
 
 
